@@ -17,10 +17,6 @@ impl Task {
         }
     }
 
-    fn title(&self) -> &str {
-        &self.title
-    }
-
     fn complete(&mut self) {
         self.status = Status::Complete;
     }
@@ -51,7 +47,7 @@ mod tests {
     #[test]
     fn tasks_have_a_title() {
         assert_eq!(
-            Task::new("Buy some milk".to_string()).title(),
+            Task::new("Buy some milk".to_string()).title,
             "Buy some milk"
         );
     }
@@ -69,7 +65,7 @@ mod tests {
         let mut task = Task::new("Buy some milk".to_string());
         task.rename("Purchase some milk".to_string());
 
-        assert_eq!(task.title(), "Purchase some milk");
+        assert_eq!(task.title, "Purchase some milk");
     }
 
     #[test]
