@@ -17,12 +17,18 @@ impl Task {
         }
     }
 
-    fn complete(&mut self) {
+    pub(crate) fn complete(&mut self) {
         self.status = Status::Complete;
     }
 
     pub(crate) fn rename(&mut self, new_title: String) {
         self.title = new_title;
+    }
+
+    // This function is only used for testing purposes.
+    #[cfg(test)]
+    pub(crate) fn is_complete(&self) -> bool {
+        matches!(self.status, Status::Complete)
     }
 }
 
@@ -66,6 +72,18 @@ mod tests {
         task.rename("Purchase some milk".to_string());
 
         assert_eq!(task.title, "Purchase some milk");
+    }
+
+    #[test]
+    fn the_status_of_a_task_can_be_accessed() {
+        let mut task = Task {
+            title: "Buy some milk".to_string(),
+            status: Status::Incomplete,
+        };
+        assert!(!task.is_complete());
+
+        task.status = Status::Complete;
+        assert!(task.is_complete());
     }
 
     #[test]

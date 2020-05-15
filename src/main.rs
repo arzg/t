@@ -41,6 +41,7 @@ enum Subcommand {
     Add { title: String },
     Remove { id: u8 },
     Rename { id: u8, new_title: String },
+    Complete { id: u8 },
 }
 
 impl Subcommand {
@@ -49,6 +50,7 @@ impl Subcommand {
             Self::Add { title } => db.add_task(t::Task::new(title)),
             Self::Remove { id } => db.remove_task(id),
             Self::Rename { id, new_title } => db.rename_task(id, new_title),
+            Self::Complete { id } => db.complete(id),
         }
     }
 }

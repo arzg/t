@@ -33,6 +33,12 @@ impl TaskDb {
             task.rename(new_title);
         }
     }
+
+    pub fn complete(&mut self, id: u8) {
+        if let Some(task) = self.tasks.get_mut(&id) {
+            task.complete();
+        }
+    }
 }
 
 impl Default for TaskDb {
@@ -139,6 +145,17 @@ mod tests {
             db.tasks[&0],
             crate::Task::new("Purchase some milk".to_string())
         );
+    }
+
+    #[test]
+    fn tasks_can_be_completed_by_id() {
+        let mut db = TaskDb::default();
+
+        db.add_task(crate::Task::new("Buy some milk".to_string()));
+        assert!(!db.tasks[&0].is_complete());
+
+        db.complete(0);
+        assert!(db.tasks[&0].is_complete());
     }
 
     #[test]
