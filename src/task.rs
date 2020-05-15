@@ -25,7 +25,7 @@ impl Task {
         self.status = Status::Complete;
     }
 
-    fn rename(&mut self, new_title: String) {
+    pub(crate) fn rename(&mut self, new_title: String) {
         self.title = new_title;
     }
 }

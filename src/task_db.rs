@@ -27,6 +27,12 @@ impl TaskDb {
     pub fn remove_task(&mut self, id: u8) {
         self.tasks.remove(&id);
     }
+
+    pub fn rename_task(&mut self, id: u8, new_title: String) {
+        if let Some(task) = self.tasks.get_mut(&id) {
+            task.rename(new_title);
+        }
+    }
 }
 
 impl Default for TaskDb {
@@ -120,6 +126,19 @@ mod tests {
         db.remove_task(0);
 
         assert!(db.tasks.is_empty());
+    }
+
+    #[test]
+    fn tasks_can_be_renamed_by_providing_an_id_and_new_title() {
+        let mut db = TaskDb::default();
+
+        db.add_task(crate::Task::new("Buy some milk".to_string()));
+        db.rename_task(0, "Purchase some milk".to_string());
+
+        assert_eq!(
+            db.tasks[&0],
+            crate::Task::new("Purchase some milk".to_string())
+        );
     }
 
     #[test]
