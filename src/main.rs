@@ -39,12 +39,14 @@ struct Opts {
 #[derive(StructOpt)]
 enum Subcommand {
     Add { title: String },
+    Remove { id: u8 },
 }
 
 impl Subcommand {
     fn execute(self, db: &mut t::TaskDb) {
         match self {
             Self::Add { title } => db.add_task(t::Task::new(title)),
+            Self::Remove { id } => db.remove_task(id),
         }
     }
 }

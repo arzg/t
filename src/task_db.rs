@@ -23,6 +23,10 @@ impl TaskDb {
             }
         }
     }
+
+    pub fn remove_task(&mut self, id: u8) {
+        self.tasks.remove(&id);
+    }
 }
 
 impl Default for TaskDb {
@@ -98,6 +102,24 @@ mod tests {
         assert_eq!(db.tasks[&0], task0);
         assert_eq!(db.tasks[&1], task1);
         assert_eq!(db.tasks[&2], task2);
+    }
+
+    #[test]
+    fn tasks_can_be_removed_by_id() {
+        let mut db = TaskDb::default();
+
+        db.add_task(crate::Task::new("Buy some milk".to_string())); // ID: 0
+        db.add_task(crate::Task::new("Learn Haskell".to_string())); // ID: 1
+        db.remove_task(0);
+
+        // The task takes the lowest available ID, which is now 0.
+        db.add_task(crate::Task::new(
+            "Finish Chapter 10 of my novel".to_string(),
+        ));
+        db.remove_task(1);
+        db.remove_task(0);
+
+        assert!(db.tasks.is_empty());
     }
 
     #[test]
