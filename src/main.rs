@@ -60,10 +60,32 @@ fn read_db(path: impl AsRef<Path>) -> anyhow::Result<t::TaskDb> {
 }
 
 fn save_db(path: impl AsRef<Path>, db: &t::TaskDb) -> anyhow::Result<()> {
+    create_dir_if_missing(&path)?;
+
     Ok(fs::write(path, serde_json::to_vec(db)?)?)
 }
 
+fn create_dir_if_missing(path: impl AsRef<Path>) -> anyhow::Result<()> {
+    let path = path.as_ref();
+
+    if let Some(parent_path) = path.parent() {
+        if !parent_path.exists() {
+            fs::create_dir_all(parent_path)?;
+        }
+    }
+
+    Ok(())
+}
+
 fn get_task_db_path() -> anyhow::Result<PathBuf> {
-    let base_dirs = xdg::BaseDirectories::new()?;
-    Ok(base_dirs.place_data_file("t/task_db.json")?)
+    use etcetera::app_strategy::AppStrategy;
+
+    let strategy =
+        etcetera::app_strategy::choose_app_strategy(etcetera::app_strategy::AppStrategyArgs {
+            top_level_domain: "com".to_string(),
+            author: "arzg".to_string(),
+            app_name: "t".to_string(),
+        })?;
+
+    Ok(strategy.data_file("task_db.json"))
 }
