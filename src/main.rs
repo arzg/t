@@ -38,9 +38,13 @@ struct Opts {
 
 #[derive(StructOpt)]
 enum Subcommand {
+    /// Adds a task to the database
     Add { title: String },
+    /// Removes a task from the database
     Remove { id: u8 },
+    /// Renames a task
     Rename { id: u8, new_title: String },
+    /// Marks a task as completed
     Complete { id: u8 },
 }
 
