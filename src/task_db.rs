@@ -34,7 +34,7 @@ impl TaskDb {
         }
     }
 
-    pub fn complete(&mut self, id: u8) {
+    pub fn complete_task(&mut self, id: u8) {
         if let Some(task) = self.tasks.get_mut(&id) {
             task.complete();
         }
@@ -158,7 +158,7 @@ mod tests {
         db.add_task(crate::Task::new("Buy some milk".to_string()));
         assert!(!db.tasks[&0].is_complete());
 
-        db.complete(0);
+        db.complete_task(0);
         assert!(db.tasks[&0].is_complete());
     }
 
@@ -169,8 +169,8 @@ mod tests {
         db.add_task(crate::Task::new("Go to the dentist".to_string()));
         db.add_task(crate::Task::new("Write some tests".to_string()));
         db.add_task(crate::Task::new("Refactor code".to_string()));
-        db.complete(1);
-        db.complete(2);
+        db.complete_task(1);
+        db.complete_task(2);
 
         db.remove_completed_tasks();
 

@@ -56,7 +56,7 @@ impl Subcommand {
             Self::Add { title } => db.add_task(t::Task::new(title)),
             Self::Remove { id } => db.remove_task(id),
             Self::Rename { id, new_title } => db.rename_task(id, new_title),
-            Self::Complete { id } => db.complete(id),
+            Self::Complete { id } => db.complete_task(id),
             Self::RemoveCompleted => db.remove_completed_tasks(),
         }
     }
