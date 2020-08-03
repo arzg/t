@@ -1,13 +1,12 @@
+use indexmap::map::Entry;
+use indexmap::IndexMap;
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::btree_map::Entry;
-use std::collections::BTreeMap;
 use std::fmt;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TaskDb {
-    // We use a BTreeMap instead of a HashMap to ensure deterministic ordering.
-    tasks: BTreeMap<u8, crate::Task>,
+    tasks: IndexMap<u8, crate::Task>,
 }
 
 impl TaskDb {
@@ -45,7 +44,7 @@ impl TaskDb {
 impl Default for TaskDb {
     fn default() -> Self {
         Self {
-            tasks: BTreeMap::new(),
+            tasks: IndexMap::new(),
         }
     }
 }
@@ -77,7 +76,7 @@ mod tests {
         assert_eq!(
             TaskDb::default(),
             TaskDb {
-                tasks: BTreeMap::new()
+                tasks: IndexMap::new()
             }
         );
     }
@@ -93,7 +92,7 @@ mod tests {
             db,
             TaskDb {
                 tasks: {
-                    let mut tasks = BTreeMap::new();
+                    let mut tasks = IndexMap::new();
                     tasks.insert(0, task_to_add);
                     tasks
                 }
