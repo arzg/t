@@ -39,6 +39,10 @@ impl TaskDb {
             task.complete();
         }
     }
+
+    pub fn remove_completed_tasks(&mut self) {
+        self.tasks.retain(|_, task| !task.is_complete());
+    }
 }
 
 impl Default for TaskDb {
@@ -156,6 +160,24 @@ mod tests {
 
         db.complete(0);
         assert!(db.tasks[&0].is_complete());
+    }
+
+    #[test]
+    fn completed_tasks_can_be_removed() {
+        let mut db = TaskDb::default();
+
+        db.add_task(crate::Task::new("Go to the dentist".to_string()));
+        db.add_task(crate::Task::new("Write some tests".to_string()));
+        db.add_task(crate::Task::new("Refactor code".to_string()));
+        db.complete(1);
+        db.complete(2);
+
+        db.remove_completed_tasks();
+
+        assert_eq!(
+            db.tasks.into_iter().collect::<Vec<_>>(),
+            vec![(0, crate::Task::new("Go to the dentist".to_string()))]
+        );
     }
 
     #[test]

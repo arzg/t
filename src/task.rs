@@ -25,8 +25,6 @@ impl Task {
         self.title = new_title;
     }
 
-    // This function is only used for testing purposes.
-    #[cfg(test)]
     pub(crate) fn is_complete(&self) -> bool {
         matches!(self.status, Status::Complete)
     }
