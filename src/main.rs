@@ -46,6 +46,8 @@ enum Subcommand {
     Rename { id: u8, new_title: String },
     /// Marks a task as completed
     Complete { id: u8 },
+    /// Removes all completed tasks
+    RemoveCompleted,
 }
 
 impl Subcommand {
@@ -55,6 +57,7 @@ impl Subcommand {
             Self::Remove { id } => db.remove_task(id),
             Self::Rename { id, new_title } => db.rename_task(id, new_title),
             Self::Complete { id } => db.complete(id),
+            Self::RemoveCompleted => db.remove_completed_tasks(),
         }
     }
 }
