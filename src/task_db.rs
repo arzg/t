@@ -1,12 +1,13 @@
 use serde::Deserialize;
 use serde::Serialize;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
 use std::fmt;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TaskDb {
-    tasks: HashMap<u8, crate::Task>,
+    // We use a BTreeMap instead of a HashMap to ensure deterministic ordering.
+    tasks: BTreeMap<u8, crate::Task>,
 }
 
 impl TaskDb {
@@ -44,7 +45,7 @@ impl TaskDb {
 impl Default for TaskDb {
     fn default() -> Self {
         Self {
-            tasks: HashMap::new(),
+            tasks: BTreeMap::new(),
         }
     }
 }
@@ -76,7 +77,7 @@ mod tests {
         assert_eq!(
             TaskDb::default(),
             TaskDb {
-                tasks: HashMap::new()
+                tasks: BTreeMap::new()
             }
         );
     }
@@ -92,7 +93,7 @@ mod tests {
             db,
             TaskDb {
                 tasks: {
-                    let mut tasks = HashMap::new();
+                    let mut tasks = BTreeMap::new();
                     tasks.insert(0, task_to_add);
                     tasks
                 }
