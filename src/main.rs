@@ -65,9 +65,9 @@ impl Subcommand {
 
         match self {
             Self::Add { title } => current_task_list.add_task(Task::new(title)),
-            Self::Remove { id } => current_task_list.remove_task(id),
-            Self::Rename { id, new_title } => current_task_list.rename_task(id, new_title),
-            Self::Complete { id } => current_task_list.complete_task(id),
+            Self::Remove { id } => current_task_list.remove_task(id)?,
+            Self::Rename { id, new_title } => current_task_list.rename_task(id, new_title)?,
+            Self::Complete { id } => current_task_list.complete_task(id)?,
             Self::RemoveCompleted => current_task_list.remove_completed_tasks(),
             Self::AddTaskList { name } => {
                 db.add_task_list(name.clone(), TaskList::default());
