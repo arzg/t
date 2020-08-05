@@ -9,6 +9,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("task list with name ‘{0}’ does not exist")]
     NonExistentTaskList(String),
+    #[error("cannot remove current task list ‘{0}’")]
+    CannotRemoveCurrentTaskList(String),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -23,6 +25,10 @@ impl Db {
     }
 
     pub fn remove_task_list(&mut self, name: String) -> Result<(), Error> {
+        if name == self.current_list {
+            return Err(Error::CannotRemoveCurrentTaskList(name));
+        }
+
         self.task_lists
             .remove(&name)
             .ok_or_else(|| Error::NonExistentTaskList(name))
@@ -156,9 +162,6 @@ mod tests {
 
         db.remove_task_list("Errands".to_string()).unwrap();
         assert_eq!(db.task_lists.len(), 1);
-
-        db.remove_task_list("Tasks".to_string()).unwrap();
-        assert!(db.task_lists.is_empty());
     }
 
     #[test]
@@ -168,6 +171,18 @@ mod tests {
         assert_eq!(
             db.remove_task_list("Foo Bar Baz".to_string()),
             Err(Error::NonExistentTaskList("Foo Bar Baz".to_string()))
+        );
+    }
+
+    #[test]
+    fn trying_to_remove_current_task_list_gives_error() {
+        let mut db = Db::default();
+
+        assert_eq!(db.current_list, "Tasks".to_string());
+
+        assert_eq!(
+            db.remove_task_list("Tasks".to_string()),
+            Err(Error::CannotRemoveCurrentTaskList("Tasks".to_string()))
         );
     }
 
