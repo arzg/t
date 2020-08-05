@@ -11,6 +11,10 @@ pub struct TaskList {
 }
 
 impl TaskList {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.tasks.is_empty()
+    }
+
     pub fn add_task(&mut self, task: Task) {
         let mut id_candidate = 0;
 
@@ -67,6 +71,14 @@ impl fmt::Display for TaskList {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn emptiness_can_be_checked() {
+        let mut task_list = TaskList::default();
+        assert!(task_list.is_empty());
+        task_list.add_task(Task::new("Buy some milk".to_string()));
+        assert!(!task_list.is_empty());
+    }
 
     #[test]
     fn tasks_can_be_added() {
