@@ -40,7 +40,12 @@ impl Default for Db {
 impl fmt::Display for Db {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (name, task_list) in self.task_lists.iter().take(self.task_lists.len() - 1) {
-            writeln!(f, "{}", name)?;
+            if *name == self.current_list {
+                writeln!(f, "{} (current)", name)?;
+            } else {
+                writeln!(f, "{}", name)?;
+            }
+
             writeln!(f, "{}\n", task_list)?;
         }
 
@@ -100,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn display_implementation_shows_all_task_lists() {
+    fn display_implementation_shows_all_task_lists_and_current_task_list() {
         let mut db = Db::default();
 
         let default_task_list = db.get_current_task_list_mut().unwrap();
@@ -129,6 +134,8 @@ mod tests {
         db.add_task_list("Novel".to_string(), novel_tasks);
         db.add_task_list("Useless skills".to_string(), useless_skills_tasks);
 
+        db.set_current("Novel".to_string());
+
         assert_eq!(
             format!("{}", db),
             "\
@@ -136,7 +143,7 @@ Tasks
 [  0] • Buy laptop sleeve
 [  1] • Vacuum
 
-Novel
+Novel (current)
 [  0] • Write acknowledgements
 [  1] • Follow up publisher
 [  2] • Do full read-through
