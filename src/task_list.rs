@@ -53,10 +53,14 @@ impl TaskList {
         )
     }
 
-    pub fn complete_task(&mut self, id: u8) {
-        if let Some(task) = self.tasks.get_mut(&id) {
-            task.complete();
-        }
+    pub fn complete_task(&mut self, id: u8) -> Result<(), Error> {
+        self.tasks.get_mut(&id).map_or_else(
+            || Err(Error::NonExistentTaskId(id)),
+            |task| {
+                task.complete();
+                Ok(())
+            },
+        )
     }
 
     pub fn remove_completed_tasks(&mut self) {
@@ -187,8 +191,18 @@ mod tests {
         task_list.add_task(Task::new("Buy some milk".to_string()));
         assert!(!task_list.tasks[&0].is_complete());
 
-        task_list.complete_task(0);
+        task_list.complete_task(0).unwrap();
         assert!(task_list.tasks[&0].is_complete());
+    }
+
+    #[test]
+    fn completing_non_existent_task_gives_error() {
+        let mut task_list = TaskList::default();
+
+        assert_eq!(
+            task_list.complete_task(10),
+            Err(Error::NonExistentTaskId(10))
+        );
     }
 
     #[test]
@@ -198,8 +212,8 @@ mod tests {
         task_list.add_task(Task::new("Go to the dentist".to_string()));
         task_list.add_task(Task::new("Write some tests".to_string()));
         task_list.add_task(Task::new("Refactor code".to_string()));
-        task_list.complete_task(1);
-        task_list.complete_task(2);
+        task_list.complete_task(1).unwrap();
+        task_list.complete_task(2).unwrap();
 
         task_list.remove_completed_tasks();
 
