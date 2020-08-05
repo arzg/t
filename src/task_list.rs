@@ -1,3 +1,4 @@
+use crate::Task;
 use indexmap::map::Entry;
 use indexmap::IndexMap;
 use serde::Deserialize;
@@ -6,11 +7,11 @@ use std::fmt;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TaskList {
-    tasks: IndexMap<u8, crate::Task>,
+    tasks: IndexMap<u8, Task>,
 }
 
 impl TaskList {
-    pub fn add_task(&mut self, task: crate::Task) {
+    pub fn add_task(&mut self, task: Task) {
         let mut id_candidate = 0;
 
         loop {
@@ -87,7 +88,7 @@ mod tests {
 
     #[test]
     fn tasks_can_be_added() {
-        let task_to_add = crate::Task::new("Buy some milk".to_string());
+        let task_to_add = Task::new("Buy some milk".to_string());
 
         let mut task_list = TaskList::default();
         task_list.add_task(task_to_add.clone());
@@ -106,9 +107,9 @@ mod tests {
 
     #[test]
     fn ids_are_chosen_by_the_lowest_available_one() {
-        let task0 = crate::Task::new("Buy some milk".to_string());
-        let task1 = crate::Task::new("Learn Haskell".to_string());
-        let task2 = crate::Task::new("Finish Chapter 10 of my novel".to_string());
+        let task0 = Task::new("Buy some milk".to_string());
+        let task1 = Task::new("Learn Haskell".to_string());
+        let task2 = Task::new("Finish Chapter 10 of my novel".to_string());
 
         let mut task_list = TaskList::default();
         task_list.add_task(task0.clone());
@@ -124,14 +125,12 @@ mod tests {
     fn tasks_can_be_removed_by_id() {
         let mut task_list = TaskList::default();
 
-        task_list.add_task(crate::Task::new("Buy some milk".to_string())); // ID: 0
-        task_list.add_task(crate::Task::new("Learn Haskell".to_string())); // ID: 1
+        task_list.add_task(Task::new("Buy some milk".to_string())); // ID: 0
+        task_list.add_task(Task::new("Learn Haskell".to_string())); // ID: 1
         task_list.remove_task(0);
 
         // The task takes the lowest available ID, which is now 0.
-        task_list.add_task(crate::Task::new(
-            "Finish Chapter 10 of my novel".to_string(),
-        ));
+        task_list.add_task(Task::new("Finish Chapter 10 of my novel".to_string()));
         task_list.remove_task(1);
         task_list.remove_task(0);
 
@@ -142,12 +141,12 @@ mod tests {
     fn tasks_can_be_renamed_by_providing_an_id_and_new_title() {
         let mut task_list = TaskList::default();
 
-        task_list.add_task(crate::Task::new("Buy some milk".to_string()));
+        task_list.add_task(Task::new("Buy some milk".to_string()));
         task_list.rename_task(0, "Purchase some milk".to_string());
 
         assert_eq!(
             task_list.tasks[&0],
-            crate::Task::new("Purchase some milk".to_string())
+            Task::new("Purchase some milk".to_string())
         );
     }
 
@@ -155,7 +154,7 @@ mod tests {
     fn tasks_can_be_completed_by_id() {
         let mut task_list = TaskList::default();
 
-        task_list.add_task(crate::Task::new("Buy some milk".to_string()));
+        task_list.add_task(Task::new("Buy some milk".to_string()));
         assert!(!task_list.tasks[&0].is_complete());
 
         task_list.complete_task(0);
@@ -166,9 +165,9 @@ mod tests {
     fn completed_tasks_can_be_removed() {
         let mut task_list = TaskList::default();
 
-        task_list.add_task(crate::Task::new("Go to the dentist".to_string()));
-        task_list.add_task(crate::Task::new("Write some tests".to_string()));
-        task_list.add_task(crate::Task::new("Refactor code".to_string()));
+        task_list.add_task(Task::new("Go to the dentist".to_string()));
+        task_list.add_task(Task::new("Write some tests".to_string()));
+        task_list.add_task(Task::new("Refactor code".to_string()));
         task_list.complete_task(1);
         task_list.complete_task(2);
 
@@ -176,15 +175,15 @@ mod tests {
 
         assert_eq!(
             task_list.tasks.into_iter().collect::<Vec<_>>(),
-            vec![(0, crate::Task::new("Go to the dentist".to_string()))]
+            vec![(0, Task::new("Go to the dentist".to_string()))]
         );
     }
 
     #[test]
     fn task_list_implements_display() {
         let mut task_list = TaskList::default();
-        task_list.add_task(crate::Task::new("Buy some milk".to_string()));
-        task_list.add_task(crate::Task::new("Learn Haskell".to_string()));
+        task_list.add_task(Task::new("Buy some milk".to_string()));
+        task_list.add_task(Task::new("Learn Haskell".to_string()));
 
         assert_eq!(
             format!("{}", task_list),
