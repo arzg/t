@@ -3,6 +3,13 @@ use indexmap::IndexMap;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fmt;
+use thiserror::Error;
+
+#[derive(Debug, Error, PartialEq)]
+pub enum Error {
+    #[error("task list with name ‘{0}’ does not exist")]
+    NonExistentTaskList(String),
+}
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Db {
@@ -15,12 +22,12 @@ impl Db {
         self.task_lists.insert(name, task_list);
     }
 
-    pub fn set_current(&mut self, new_current_list: String) -> anyhow::Result<()> {
+    pub fn set_current(&mut self, new_current_list: String) -> Result<(), Error> {
         if self.task_lists.contains_key(&new_current_list) {
             self.current_list = new_current_list;
             Ok(())
         } else {
-            anyhow::bail!("task list with name ‘{}’ does not exist", new_current_list);
+            Err(Error::NonExistentTaskList(new_current_list))
         }
     }
 
@@ -214,12 +221,9 @@ Tasks (current)
     fn setting_current_task_list_to_one_that_does_not_exist_gives_error() {
         let mut db = Db::default();
 
-        let set_current_result = db.set_current("Non-existent".to_string());
-        let error = set_current_result.unwrap_err();
-
         assert_eq!(
-            error.to_string(),
-            "task list with name ‘Non-existent’ does not exist"
+            db.set_current("Non-existent".to_string()),
+            Err(Error::NonExistentTaskList("Non-existent".to_string()))
         );
     }
 
