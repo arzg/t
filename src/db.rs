@@ -1,4 +1,4 @@
-use crate::TaskList;
+use crate::task_list::TaskList;
 use indexmap::IndexMap;
 use std::fmt;
 
@@ -65,7 +65,7 @@ impl<CurrentList: CurrentListState> fmt::Display for Db<CurrentList> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Task;
+    use crate::task::Task;
 
     #[test]
     fn task_lists_can_be_added() {

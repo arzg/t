@@ -1,4 +1,4 @@
-use crate::Status;
+use crate::status::Status;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fmt;

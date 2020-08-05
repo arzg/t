@@ -1,4 +1,4 @@
-use crate::Task;
+use crate::task::Task;
 use indexmap::map::Entry;
 use indexmap::IndexMap;
 use serde::Deserialize;

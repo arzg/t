@@ -2,6 +2,8 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use t::task::Task;
+use t::task_list::TaskList;
 
 fn main() -> anyhow::Result<()> {
     let opts = Opts::from_args();
@@ -11,7 +13,7 @@ fn main() -> anyhow::Result<()> {
     let task_list = if task_list_path.exists() {
         read_task_list(&task_list_path)?
     } else {
-        let empty_task_list = t::TaskList::default();
+        let empty_task_list = TaskList::default();
         save_task_list(&task_list_path, &empty_task_list)?;
 
         empty_task_list
@@ -51,9 +53,9 @@ enum Subcommand {
 }
 
 impl Subcommand {
-    fn execute(self, task_list: &mut t::TaskList) {
+    fn execute(self, task_list: &mut TaskList) {
         match self {
-            Self::Add { title } => task_list.add_task(t::Task::new(title)),
+            Self::Add { title } => task_list.add_task(Task::new(title)),
             Self::Remove { id } => task_list.remove_task(id),
             Self::Rename { id, new_title } => task_list.rename_task(id, new_title),
             Self::Complete { id } => task_list.complete_task(id),
@@ -62,11 +64,11 @@ impl Subcommand {
     }
 }
 
-fn read_task_list(path: impl AsRef<Path>) -> anyhow::Result<t::TaskList> {
+fn read_task_list(path: impl AsRef<Path>) -> anyhow::Result<TaskList> {
     Ok(serde_json::from_reader(fs::File::open(&path)?)?)
 }
 
-fn save_task_list(path: impl AsRef<Path>, task_list: &t::TaskList) -> anyhow::Result<()> {
+fn save_task_list(path: impl AsRef<Path>, task_list: &TaskList) -> anyhow::Result<()> {
     create_dir_if_missing(&path)?;
 
     Ok(fs::write(path, serde_json::to_vec(task_list)?)?)
