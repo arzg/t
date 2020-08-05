@@ -4,6 +4,13 @@ use indexmap::IndexMap;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fmt;
+use thiserror::Error;
+
+#[derive(Debug, Error, PartialEq)]
+pub enum Error {
+    #[error("task with ID {0} does not exist")]
+    NonExistentTaskId(u8),
+}
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TaskList {
@@ -29,8 +36,11 @@ impl TaskList {
         }
     }
 
-    pub fn remove_task(&mut self, id: u8) {
-        self.tasks.remove(&id);
+    pub fn remove_task(&mut self, id: u8) -> Result<(), Error> {
+        self.tasks
+            .remove(&id)
+            .ok_or_else(|| Error::NonExistentTaskId(id))
+            .map(|_| ())
     }
 
     pub fn rename_task(&mut self, id: u8, new_title: String) {
@@ -121,14 +131,24 @@ mod tests {
 
         task_list.add_task(Task::new("Buy some milk".to_string())); // ID: 0
         task_list.add_task(Task::new("Learn Haskell".to_string())); // ID: 1
-        task_list.remove_task(0);
+        task_list.remove_task(0).unwrap();
 
         // The task takes the lowest available ID, which is now 0.
         task_list.add_task(Task::new("Finish Chapter 10 of my novel".to_string()));
-        task_list.remove_task(1);
-        task_list.remove_task(0);
+        task_list.remove_task(1).unwrap();
+        task_list.remove_task(0).unwrap();
 
         assert!(task_list.tasks.is_empty());
+    }
+
+    #[test]
+    fn removing_non_existent_task_gives_error() {
+        let mut task_list = TaskList::default();
+
+        assert_eq!(
+            task_list.remove_task(123),
+            Err(Error::NonExistentTaskId(123))
+        );
     }
 
     #[test]
