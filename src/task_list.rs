@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TaskList {
     tasks: IndexMap<u8, Task>,
 }
