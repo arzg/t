@@ -35,11 +35,14 @@ impl Db {
             .map(|_| ())
     }
 
-    pub fn rename_task_list(&mut self, old_name: &str, new_name: String) {
-        let task_list = self.task_lists.remove(old_name);
+    pub fn rename_task_list(&mut self, old_name: String, new_name: String) -> Result<(), Error> {
+        let task_list = self.task_lists.remove(&old_name);
 
         if let Some(task_list) = task_list {
             self.task_lists.insert(new_name, task_list);
+            Ok(())
+        } else {
+            Err(Error::NonExistentTaskList(old_name))
         }
     }
 
@@ -208,9 +211,20 @@ mod tests {
 
         db.add_task_list("Wokr".to_string(), work_tasks.clone());
 
-        db.rename_task_list("Wokr", "Work".to_string());
+        db.rename_task_list("Wokr".to_string(), "Work".to_string())
+            .unwrap();
 
         assert_eq!(db.task_lists["Work"], work_tasks);
+    }
+
+    #[test]
+    fn renaming_non_existent_task_list_gives_error() {
+        let mut db = Db::default();
+
+        assert_eq!(
+            db.rename_task_list("Foo".to_string(), "Bar".to_string()),
+            Err(Error::NonExistentTaskList("Foo".to_string()))
+        );
     }
 
     #[test]
