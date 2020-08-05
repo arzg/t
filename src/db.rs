@@ -214,6 +214,7 @@ mod tests {
         db.rename_task_list("Wokr".to_string(), "Work".to_string())
             .unwrap();
 
+        assert!(db.task_lists.get("Wokr").is_none());
         assert_eq!(db.task_lists["Work"], work_tasks);
     }
 
