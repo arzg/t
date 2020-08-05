@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use t::db::Db;
 use t::task::Task;
+use t::task_list::TaskList;
 
 fn main() -> anyhow::Result<()> {
     let opts = Opts::from_args();
@@ -50,6 +51,8 @@ enum Subcommand {
     Complete { id: u8 },
     /// Removes all completed tasks
     RemoveCompleted,
+    /// Creates a new empty task list and sets it as current
+    AddTaskList { name: String },
     /// Sets the current task list
     SetCurrent { name: String },
 }
@@ -64,6 +67,13 @@ impl Subcommand {
             Self::Rename { id, new_title } => current_task_list.rename_task(id, new_title),
             Self::Complete { id } => current_task_list.complete_task(id),
             Self::RemoveCompleted => current_task_list.remove_completed_tasks(),
+            Self::AddTaskList { name } => {
+                db.add_task_list(name.clone(), TaskList::default());
+
+                // This cannot fail because we just created a task list with this name, so we know
+                // it must exist.
+                db.set_current(name).unwrap();
+            }
             Self::SetCurrent { name } => db.set_current(name)?,
         }
 
