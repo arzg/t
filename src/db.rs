@@ -39,19 +39,28 @@ impl Default for Db {
 
 impl fmt::Display for Db {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (name, task_list) in self.task_lists.iter().take(self.task_lists.len() - 1) {
-            if *name == self.current_list {
+        fn print_task_list(
+            current_list: &str,
+            name: &str,
+            task_list: &TaskList,
+            f: &mut fmt::Formatter<'_>,
+        ) -> fmt::Result {
+            if name == current_list {
                 writeln!(f, "{} (current)", name)?;
             } else {
                 writeln!(f, "{}", name)?;
             }
 
-            writeln!(f, "{}\n", task_list)?;
+            write!(f, "{}", task_list)
+        };
+
+        for (name, task_list) in self.task_lists.iter().take(self.task_lists.len() - 1) {
+            print_task_list(&self.current_list, name, task_list, f)?;
+            writeln!(f, "\n")?;
         }
 
         if let Some((name, task_list)) = self.task_lists.iter().last() {
-            writeln!(f, "{}", name)?;
-            write!(f, "{}", task_list)?;
+            print_task_list(&self.current_list, name, task_list, f)?;
         }
 
         Ok(())
