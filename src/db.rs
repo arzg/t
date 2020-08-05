@@ -22,8 +22,11 @@ impl Db {
         self.task_lists.insert(name, task_list);
     }
 
-    pub fn remove_task_list(&mut self, name: &str) {
-        self.task_lists.remove(name);
+    pub fn remove_task_list(&mut self, name: String) -> Result<(), Error> {
+        self.task_lists
+            .remove(&name)
+            .ok_or_else(|| Error::NonExistentTaskList(name))
+            .map(|_| ())
     }
 
     pub fn set_current(&mut self, new_current_list: String) -> Result<(), Error> {
@@ -151,11 +154,21 @@ mod tests {
         db.add_task_list("Errands".to_string(), TaskList::default());
         assert_eq!(db.task_lists.len(), 2); // 2 because there is also the default task list.
 
-        db.remove_task_list("Errands");
+        db.remove_task_list("Errands".to_string()).unwrap();
         assert_eq!(db.task_lists.len(), 1);
 
-        db.remove_task_list("Tasks");
+        db.remove_task_list("Tasks".to_string()).unwrap();
         assert!(db.task_lists.is_empty());
+    }
+
+    #[test]
+    fn trying_to_remove_non_existent_task_list_gives_error() {
+        let mut db = Db::default();
+
+        assert_eq!(
+            db.remove_task_list("Foo Bar Baz".to_string()),
+            Err(Error::NonExistentTaskList("Foo Bar Baz".to_string()))
+        );
     }
 
     #[test]
