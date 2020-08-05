@@ -43,10 +43,14 @@ impl TaskList {
             .map(|_| ())
     }
 
-    pub fn rename_task(&mut self, id: u8, new_title: String) {
-        if let Some(task) = self.tasks.get_mut(&id) {
-            task.rename(new_title);
-        }
+    pub fn rename_task(&mut self, id: u8, new_title: String) -> Result<(), Error> {
+        self.tasks.get_mut(&id).map_or_else(
+            || Err(Error::NonExistentTaskId(id)),
+            |task| {
+                task.rename(new_title);
+                Ok(())
+            },
+        )
     }
 
     pub fn complete_task(&mut self, id: u8) {
@@ -156,11 +160,23 @@ mod tests {
         let mut task_list = TaskList::default();
 
         task_list.add_task(Task::new("Buy some milk".to_string()));
-        task_list.rename_task(0, "Purchase some milk".to_string());
+        task_list
+            .rename_task(0, "Purchase some milk".to_string())
+            .unwrap();
 
         assert_eq!(
             task_list.tasks[&0],
             Task::new("Purchase some milk".to_string())
+        );
+    }
+
+    #[test]
+    fn renaming_non_existent_task_gives_error() {
+        let mut task_list = TaskList::default();
+
+        assert_eq!(
+            task_list.rename_task(123, "Title for a task that does not exist".to_string()),
+            Err(Error::NonExistentTaskId(123))
         );
     }
 
