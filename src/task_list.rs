@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TaskList {
     tasks: IndexMap<u8, Task>,
 }
@@ -46,14 +46,6 @@ impl TaskList {
     }
 }
 
-impl Default for TaskList {
-    fn default() -> Self {
-        Self {
-            tasks: IndexMap::new(),
-        }
-    }
-}
-
 impl fmt::Display for TaskList {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let len = self.tasks.len();
@@ -75,16 +67,6 @@ impl fmt::Display for TaskList {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn task_list_default_value_is_empty() {
-        assert_eq!(
-            TaskList::default(),
-            TaskList {
-                tasks: IndexMap::new()
-            }
-        );
-    }
 
     #[test]
     fn tasks_can_be_added() {
