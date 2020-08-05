@@ -56,7 +56,22 @@ impl fmt::Display for Db {
                 writeln!(f, "{}", name)?;
             }
 
-            write!(f, "{}", task_list)
+            if task_list.is_empty() {
+                write!(f, "  No tasks have been added to this task list yet")
+            } else {
+                // Indent each line of output by two spaces by splitting by line, adding the
+                // indentation, and collecting back again.
+                write!(
+                    f,
+                    "{}",
+                    task_list
+                        .to_string()
+                        .lines()
+                        .map(|line| format!("  {}", line))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                )
+            }
         };
 
         for (name, task_list) in self.task_lists.iter().take(self.task_lists.len() - 1) {
@@ -154,18 +169,30 @@ mod tests {
             format!("{}", db),
             "\
 Tasks
-[  0] • Buy laptop sleeve
-[  1] • Vacuum
+  [  0] • Buy laptop sleeve
+  [  1] • Vacuum
 
 Novel (current)
-[  0] • Write acknowledgements
-[  1] • Follow up publisher
-[  2] • Do full read-through
+  [  0] • Write acknowledgements
+  [  1] • Follow up publisher
+  [  2] • Do full read-through
 
 Useless skills
-[  0] • Study next 100 digits of π
-[  1] • Memorise 100 biggest cities
-[  2] • Learn to speak backwards"
+  [  0] • Study next 100 digits of π
+  [  1] • Memorise 100 biggest cities
+  [  2] • Learn to speak backwards"
+        );
+    }
+
+    #[test]
+    fn display_implementation_shows_note_for_empty_task_lists() {
+        let db = Db::default();
+
+        assert_eq!(
+            format!("{}", db),
+            "\
+Tasks (current)
+  No tasks have been added to this task list yet"
         );
     }
 
