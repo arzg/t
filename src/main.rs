@@ -53,6 +53,8 @@ enum Subcommand {
     RemoveCompleted,
     /// Creates a new empty task list and sets it as current
     AddTaskList { name: String },
+    /// Removes a task list
+    RemoveTaskList { name: String },
     /// Sets the current task list
     SetCurrent { name: String },
 }
@@ -74,6 +76,7 @@ impl Subcommand {
                 // it must exist.
                 db.set_current(name).unwrap();
             }
+            Self::RemoveTaskList { name } => db.remove_task_list(name)?,
             Self::SetCurrent { name } => db.set_current(name)?,
         }
 
