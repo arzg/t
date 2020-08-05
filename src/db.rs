@@ -5,50 +5,39 @@ use serde::Serialize;
 use std::fmt;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct HasCurrentList(String);
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct NoCurrentList;
-
-pub trait CurrentListState {}
-impl CurrentListState for HasCurrentList {}
-impl CurrentListState for NoCurrentList {}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Db<CurrentList: CurrentListState> {
+pub struct Db {
     task_lists: IndexMap<String, TaskList>,
-    current_list: CurrentList,
+    current_list: String,
 }
 
-impl<CurrentList: CurrentListState> Db<CurrentList> {
+impl Db {
     pub fn add_task_list(&mut self, name: String, task_list: TaskList) {
         self.task_lists.insert(name, task_list);
     }
 
-    #[must_use = "This function has no effect other than returning a new Db instance, so not using it is most likely a mistake."]
-    pub fn set_current(self, new_current_list: String) -> Db<HasCurrentList> {
-        Db {
-            task_lists: self.task_lists,
-            current_list: HasCurrentList(new_current_list),
-        }
+    pub fn set_current(&mut self, new_current_list: String) {
+        self.current_list = new_current_list;
     }
-}
 
-impl Db<HasCurrentList> {
     pub fn get_current_task_list_mut(&mut self) -> Option<&mut TaskList> {
-        self.task_lists.get_mut(&self.current_list.0)
+        self.task_lists.get_mut(&self.current_list)
     }
 }
 
-impl Default for Db<NoCurrentList> {
+impl Default for Db {
     fn default() -> Self {
         Self {
-            task_lists: IndexMap::new(),
-            current_list: NoCurrentList,
+            task_lists: {
+                let mut task_lists = IndexMap::new();
+                task_lists.insert("Tasks".to_string(), TaskList::default());
+                task_lists
+            },
+            current_list: "Tasks".to_string(),
         }
     }
 }
 
-impl<CurrentList: CurrentListState> fmt::Display for Db<CurrentList> {
+impl fmt::Display for Db {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (name, task_list) in self.task_lists.iter().take(self.task_lists.len() - 1) {
             writeln!(f, "{}", name)?;
@@ -99,12 +88,13 @@ mod tests {
             Db {
                 task_lists: {
                     let mut task_lists = IndexMap::new();
+                    task_lists.insert("Tasks".to_string(), TaskList::default());
                     task_lists.insert("Shopping List".to_string(), shopping_list);
                     task_lists.insert("School".to_string(), school_tasks);
 
                     task_lists
                 },
-                current_list: NoCurrentList,
+                current_list: "Tasks".to_string(),
             }
         );
     }
@@ -112,6 +102,11 @@ mod tests {
     #[test]
     fn display_implementation_shows_all_task_lists() {
         let mut db = Db::default();
+
+        let default_task_list = db.get_current_task_list_mut().unwrap();
+
+        default_task_list.add_task(Task::new("Buy laptop sleeve".to_string()));
+        default_task_list.add_task(Task::new("Vacuum".to_string()));
 
         let novel_tasks = {
             let mut tl = TaskList::default();
@@ -137,6 +132,10 @@ mod tests {
         assert_eq!(
             format!("{}", db),
             "\
+Tasks
+[  0] • Buy laptop sleeve
+[  1] • Vacuum
+
 Novel
 [  0] • Write acknowledgements
 [  1] • Follow up publisher
@@ -156,11 +155,11 @@ Useless skills
         db.add_task_list("Work".to_string(), TaskList::default());
         db.add_task_list("Guitar".to_string(), TaskList::default());
 
-        let db = db.set_current("Work".to_string());
-        assert_eq!(db.current_list.0, "Work".to_string());
+        db.set_current("Work".to_string());
+        assert_eq!(db.current_list, "Work".to_string());
 
-        let db = db.set_current("Personal".to_string());
-        assert_eq!(db.current_list.0, "Personal".to_string());
+        db.set_current("Personal".to_string());
+        assert_eq!(db.current_list, "Personal".to_string());
     }
 
     #[test]
@@ -178,7 +177,7 @@ Useless skills
 
         db.add_task_list("Code review".to_string(), TaskList::default());
 
-        let mut db = db.set_current("Refactoring".to_string());
+        db.set_current("Refactoring".to_string());
 
         let current_task_list = db.get_current_task_list_mut();
         assert_eq!(current_task_list, Some(&mut refactoring_tasks));
