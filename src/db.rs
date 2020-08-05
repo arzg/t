@@ -35,6 +35,14 @@ impl Db {
             .map(|_| ())
     }
 
+    pub fn rename_task_list(&mut self, old_name: &str, new_name: String) {
+        let task_list = self.task_lists.remove(old_name);
+
+        if let Some(task_list) = task_list {
+            self.task_lists.insert(new_name, task_list);
+        }
+    }
+
     pub fn set_current(&mut self, new_current_list: String) -> Result<(), Error> {
         if self.task_lists.contains_key(&new_current_list) {
             self.current_list = new_current_list;
@@ -184,6 +192,25 @@ mod tests {
             db.remove_task_list("Tasks".to_string()),
             Err(Error::CannotRemoveCurrentTaskList("Tasks".to_string()))
         );
+    }
+
+    #[test]
+    fn task_lists_can_be_renamed() {
+        let mut db = Db::default();
+
+        let work_tasks = {
+            let mut tl = TaskList::default();
+            tl.add_task(Task::new("Finish spreadsheet".to_string()));
+            tl.add_task(Task::new("Write report".to_string()));
+
+            tl
+        };
+
+        db.add_task_list("Wokr".to_string(), work_tasks.clone());
+
+        db.rename_task_list("Wokr", "Work".to_string());
+
+        assert_eq!(db.task_lists["Work"], work_tasks);
     }
 
     #[test]
