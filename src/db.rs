@@ -15,8 +15,13 @@ impl Db {
         self.task_lists.insert(name, task_list);
     }
 
-    pub fn set_current(&mut self, new_current_list: String) {
-        self.current_list = new_current_list;
+    pub fn set_current(&mut self, new_current_list: String) -> anyhow::Result<()> {
+        if self.task_lists.contains_key(&new_current_list) {
+            self.current_list = new_current_list;
+            Ok(())
+        } else {
+            anyhow::bail!("task list with name ‘{}’ does not exist", new_current_list);
+        }
     }
 
     pub fn get_current_task_list_mut(&mut self) -> Option<&mut TaskList> {
@@ -143,7 +148,7 @@ mod tests {
         db.add_task_list("Novel".to_string(), novel_tasks);
         db.add_task_list("Useless skills".to_string(), useless_skills_tasks);
 
-        db.set_current("Novel".to_string());
+        db.set_current("Novel".to_string()).unwrap();
 
         assert_eq!(
             format!("{}", db),
@@ -171,11 +176,24 @@ Useless skills
         db.add_task_list("Work".to_string(), TaskList::default());
         db.add_task_list("Guitar".to_string(), TaskList::default());
 
-        db.set_current("Work".to_string());
+        db.set_current("Work".to_string()).unwrap();
         assert_eq!(db.current_list, "Work".to_string());
 
-        db.set_current("Personal".to_string());
-        assert_eq!(db.current_list, "Personal".to_string());
+        db.set_current("Guitar".to_string()).unwrap();
+        assert_eq!(db.current_list, "Guitar".to_string());
+    }
+
+    #[test]
+    fn setting_current_task_list_to_one_that_does_not_exist_gives_error() {
+        let mut db = Db::default();
+
+        let set_current_result = db.set_current("Non-existent".to_string());
+        let error = set_current_result.unwrap_err();
+
+        assert_eq!(
+            error.to_string(),
+            "task list with name ‘Non-existent’ does not exist"
+        );
     }
 
     #[test]
@@ -193,7 +211,7 @@ Useless skills
 
         db.add_task_list("Code review".to_string(), TaskList::default());
 
-        db.set_current("Refactoring".to_string());
+        db.set_current("Refactoring".to_string()).unwrap();
 
         let current_task_list = db.get_current_task_list_mut();
         assert_eq!(current_task_list, Some(&mut refactoring_tasks));
