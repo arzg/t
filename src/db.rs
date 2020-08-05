@@ -2,18 +2,51 @@ use crate::TaskList;
 use indexmap::IndexMap;
 use std::fmt;
 
-#[derive(Debug, Default, PartialEq)]
-pub struct Db {
+#[derive(Debug, PartialEq)]
+pub struct HasCurrentList(String);
+#[derive(Debug, PartialEq)]
+pub struct NoCurrentList;
+
+pub trait CurrentListState {}
+impl CurrentListState for HasCurrentList {}
+impl CurrentListState for NoCurrentList {}
+
+#[derive(Debug, PartialEq)]
+pub struct Db<CurrentList: CurrentListState> {
     task_lists: IndexMap<String, TaskList>,
+    current_list: CurrentList,
 }
 
-impl Db {
+impl<CurrentList: CurrentListState> Db<CurrentList> {
     pub fn add_task_list(&mut self, name: String, task_list: TaskList) {
         self.task_lists.insert(name, task_list);
     }
+
+    #[must_use = "This function has no effect other than returning a new Db instance, so not using it is most likely a mistake."]
+    pub fn set_current(self, new_current_list: String) -> Db<HasCurrentList> {
+        Db {
+            task_lists: self.task_lists,
+            current_list: HasCurrentList(new_current_list),
+        }
+    }
 }
 
-impl fmt::Display for Db {
+impl Db<HasCurrentList> {
+    pub fn get_current_task_list_mut(&mut self) -> Option<&mut TaskList> {
+        self.task_lists.get_mut(&self.current_list.0)
+    }
+}
+
+impl Default for Db<NoCurrentList> {
+    fn default() -> Self {
+        Self {
+            task_lists: IndexMap::new(),
+            current_list: NoCurrentList,
+        }
+    }
+}
+
+impl<CurrentList: CurrentListState> fmt::Display for Db<CurrentList> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (name, task_list) in self.task_lists.iter().take(self.task_lists.len() - 1) {
             writeln!(f, "{}", name)?;
@@ -68,7 +101,8 @@ mod tests {
                     task_lists.insert("School".to_string(), school_tasks);
 
                     task_lists
-                }
+                },
+                current_list: NoCurrentList,
             }
         );
     }
@@ -111,5 +145,52 @@ Useless skills
 [  1] • Memorise 100 biggest cities
 [  2] • Learn to speak backwards"
         );
+    }
+
+    #[test]
+    fn current_task_list_can_be_set() {
+        let mut db = Db::default();
+
+        db.add_task_list("Work".to_string(), TaskList::default());
+        db.add_task_list("Guitar".to_string(), TaskList::default());
+
+        let db = db.set_current("Work".to_string());
+        assert_eq!(db.current_list.0, "Work".to_string());
+
+        let db = db.set_current("Personal".to_string());
+        assert_eq!(db.current_list.0, "Personal".to_string());
+    }
+
+    #[test]
+    fn current_task_list_can_be_obtained_and_mutated() {
+        let mut db = Db::default();
+
+        let mut refactoring_tasks = {
+            let mut tl = TaskList::default();
+            tl.add_task(Task::new("Clean up FooBar’s Display impl".to_string()));
+
+            tl
+        };
+
+        db.add_task_list("Refactoring".to_string(), refactoring_tasks.clone());
+
+        db.add_task_list("Code review".to_string(), TaskList::default());
+
+        let mut db = db.set_current("Refactoring".to_string());
+
+        let current_task_list = db.get_current_task_list_mut();
+        assert_eq!(current_task_list, Some(&mut refactoring_tasks));
+
+        let current_task_list = current_task_list.unwrap();
+
+        current_task_list.add_task(Task::new("Refactor foo.rs".to_string()));
+
+        assert_eq!(db.task_lists["Refactoring"], {
+            let mut tl = TaskList::default();
+            tl.add_task(Task::new("Clean up FooBar’s Display impl".to_string()));
+            tl.add_task(Task::new("Refactor foo.rs".to_string()));
+
+            tl
+        });
     }
 }
