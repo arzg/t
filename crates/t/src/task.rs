@@ -1,4 +1,5 @@
 use crate::status::Status;
+use chrono::NaiveDate;
 use serde::Deserialize;
 use serde::Serialize;
 use std::fmt;
@@ -7,6 +8,7 @@ use std::fmt;
 pub struct Task {
     title: String,
     status: Status,
+    reminders: Vec<NaiveDate>,
 }
 
 impl Task {
@@ -14,6 +16,7 @@ impl Task {
         Self {
             title,
             status: Status::Incomplete,
+            reminders: Vec::new(),
         }
     }
 
@@ -49,6 +52,11 @@ mod tests {
     }
 
     #[test]
+    fn when_a_task_is_created_it_has_no_reminders() {
+        assert_eq!(Task::new("Buy some milk".to_string()).reminders, Vec::new());
+    }
+
+    #[test]
     fn tasks_have_a_title() {
         assert_eq!(
             Task::new("Buy some milk".to_string()).title,
@@ -77,6 +85,7 @@ mod tests {
         let mut task = Task {
             title: "Buy some milk".to_string(),
             status: Status::Incomplete,
+            reminders: Vec::new(),
         };
         assert!(!task.is_complete());
 
@@ -89,6 +98,7 @@ mod tests {
         let task = Task {
             title: "Buy some milk".to_string(),
             status: Status::Incomplete,
+            reminders: Vec::new(),
         };
 
         assert_eq!(format!("{}", task), "• Buy some milk");
@@ -99,6 +109,7 @@ mod tests {
         let task = Task {
             title: "Buy some milk".to_string(),
             status: Status::Complete,
+            reminders: Vec::new(),
         };
 
         assert_eq!(format!("{}", task), "– Buy some milk");
