@@ -22,6 +22,10 @@ impl Db {
         self.task_lists.insert(name, task_list);
     }
 
+    pub fn remove_task_list(&mut self, name: &str) {
+        self.task_lists.remove(name);
+    }
+
     pub fn set_current(&mut self, new_current_list: String) -> Result<(), Error> {
         if self.task_lists.contains_key(&new_current_list) {
             self.current_list = new_current_list;
@@ -138,6 +142,20 @@ mod tests {
                 current_list: "Tasks".to_string(),
             }
         );
+    }
+
+    #[test]
+    fn task_lists_can_be_removed() {
+        let mut db = Db::default();
+
+        db.add_task_list("Errands".to_string(), TaskList::default());
+        assert_eq!(db.task_lists.len(), 2); // 2 because there is also the default task list.
+
+        db.remove_task_list("Errands");
+        assert_eq!(db.task_lists.len(), 1);
+
+        db.remove_task_list("Tasks");
+        assert!(db.task_lists.is_empty());
     }
 
     #[test]
