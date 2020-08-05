@@ -1,17 +1,19 @@
 use crate::task_list::TaskList;
 use indexmap::IndexMap;
+use serde::Deserialize;
+use serde::Serialize;
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct HasCurrentList(String);
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct NoCurrentList;
 
 pub trait CurrentListState {}
 impl CurrentListState for HasCurrentList {}
 impl CurrentListState for NoCurrentList {}
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Db<CurrentList: CurrentListState> {
     task_lists: IndexMap<String, TaskList>,
     current_list: CurrentList,
