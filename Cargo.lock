@@ -371,13 +371,20 @@ dependencies = [
 name = "t"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "etcetera",
  "indexmap",
  "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "t-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "etcetera",
  "serde_json",
  "structopt",
- "thiserror",
+ "t",
 ]
 
 [[package]]
