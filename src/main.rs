@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
 
     if let Some(subcommand) = opts.subcommand {
         let mut db = db;
-        subcommand.execute(&mut db);
+        subcommand.execute(&mut db)?;
 
         save_db(&db_path, &db)?;
     } else {
@@ -50,10 +50,12 @@ enum Subcommand {
     Complete { id: u8 },
     /// Removes all completed tasks
     RemoveCompleted,
+    /// Sets the current task list
+    SetCurrent { name: String },
 }
 
 impl Subcommand {
-    fn execute(self, db: &mut Db) {
+    fn execute(self, db: &mut Db) -> anyhow::Result<()> {
         let current_task_list = db.get_current_task_list_mut().unwrap();
 
         match self {
@@ -62,7 +64,10 @@ impl Subcommand {
             Self::Rename { id, new_title } => current_task_list.rename_task(id, new_title),
             Self::Complete { id } => current_task_list.complete_task(id),
             Self::RemoveCompleted => current_task_list.remove_completed_tasks(),
+            Self::SetCurrent { name } => db.set_current(name)?,
         }
+
+        Ok(())
     }
 }
 
