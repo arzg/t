@@ -6,25 +6,25 @@ use structopt::StructOpt;
 fn main() -> anyhow::Result<()> {
     let opts = Opts::from_args();
 
-    let db_path = get_task_db_path()?;
+    let task_list_path = get_task_list_path()?;
 
-    let db = if db_path.exists() {
-        read_db(&db_path)?
+    let task_list = if task_list_path.exists() {
+        read_task_list(&task_list_path)?
     } else {
-        let empty_db = t::TaskDb::default();
-        save_db(&db_path, &empty_db)?;
+        let empty_task_list = t::TaskList::default();
+        save_task_list(&task_list_path, &empty_task_list)?;
 
-        empty_db
+        empty_task_list
     };
 
     if let Some(subcommand) = opts.subcommand {
-        let mut db = db;
-        subcommand.execute(&mut db);
+        let mut task_list = task_list;
+        subcommand.execute(&mut task_list);
 
-        save_db(&db_path, &db)?;
+        save_task_list(&task_list_path, &task_list)?;
     } else {
-        // In this case we just print the database to the user.
-        println!("{}", db);
+        // In this case we just print the task list to the user.
+        println!("{}", task_list);
     }
 
     Ok(())
@@ -51,25 +51,25 @@ enum Subcommand {
 }
 
 impl Subcommand {
-    fn execute(self, db: &mut t::TaskDb) {
+    fn execute(self, task_list: &mut t::TaskList) {
         match self {
-            Self::Add { title } => db.add_task(t::Task::new(title)),
-            Self::Remove { id } => db.remove_task(id),
-            Self::Rename { id, new_title } => db.rename_task(id, new_title),
-            Self::Complete { id } => db.complete_task(id),
-            Self::RemoveCompleted => db.remove_completed_tasks(),
+            Self::Add { title } => task_list.add_task(t::Task::new(title)),
+            Self::Remove { id } => task_list.remove_task(id),
+            Self::Rename { id, new_title } => task_list.rename_task(id, new_title),
+            Self::Complete { id } => task_list.complete_task(id),
+            Self::RemoveCompleted => task_list.remove_completed_tasks(),
         }
     }
 }
 
-fn read_db(path: impl AsRef<Path>) -> anyhow::Result<t::TaskDb> {
+fn read_task_list(path: impl AsRef<Path>) -> anyhow::Result<t::TaskList> {
     Ok(serde_json::from_reader(fs::File::open(&path)?)?)
 }
 
-fn save_db(path: impl AsRef<Path>, db: &t::TaskDb) -> anyhow::Result<()> {
+fn save_task_list(path: impl AsRef<Path>, task_list: &t::TaskList) -> anyhow::Result<()> {
     create_dir_if_missing(&path)?;
 
-    Ok(fs::write(path, serde_json::to_vec(db)?)?)
+    Ok(fs::write(path, serde_json::to_vec(task_list)?)?)
 }
 
 fn create_dir_if_missing(path: impl AsRef<Path>) -> anyhow::Result<()> {
@@ -84,7 +84,7 @@ fn create_dir_if_missing(path: impl AsRef<Path>) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_task_db_path() -> anyhow::Result<PathBuf> {
+fn get_task_list_path() -> anyhow::Result<PathBuf> {
     use etcetera::app_strategy::AppStrategy;
 
     let strategy =
@@ -94,5 +94,5 @@ fn get_task_db_path() -> anyhow::Result<PathBuf> {
             app_name: "t".to_string(),
         })?;
 
-    Ok(strategy.data_file("task_db.json"))
+    Ok(strategy.data_file("task_list.json"))
 }

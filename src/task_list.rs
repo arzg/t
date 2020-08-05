@@ -5,11 +5,11 @@ use serde::Serialize;
 use std::fmt;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct TaskDb {
+pub struct TaskList {
     tasks: IndexMap<u8, crate::Task>,
 }
 
-impl TaskDb {
+impl TaskList {
     pub fn add_task(&mut self, task: crate::Task) {
         let mut id_candidate = 0;
 
@@ -45,7 +45,7 @@ impl TaskDb {
     }
 }
 
-impl Default for TaskDb {
+impl Default for TaskList {
     fn default() -> Self {
         Self {
             tasks: IndexMap::new(),
@@ -53,7 +53,7 @@ impl Default for TaskDb {
     }
 }
 
-impl fmt::Display for TaskDb {
+impl fmt::Display for TaskList {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let len = self.tasks.len();
 
@@ -76,10 +76,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn task_db_default_value_is_empty() {
+    fn task_list_default_value_is_empty() {
         assert_eq!(
-            TaskDb::default(),
-            TaskDb {
+            TaskList::default(),
+            TaskList {
                 tasks: IndexMap::new()
             }
         );
@@ -89,12 +89,12 @@ mod tests {
     fn tasks_can_be_added() {
         let task_to_add = crate::Task::new("Buy some milk".to_string());
 
-        let mut db = TaskDb::default();
-        db.add_task(task_to_add.clone());
+        let mut task_list = TaskList::default();
+        task_list.add_task(task_to_add.clone());
 
         assert_eq!(
-            db,
-            TaskDb {
+            task_list,
+            TaskList {
                 tasks: {
                     let mut tasks = IndexMap::new();
                     tasks.insert(0, task_to_add);
@@ -110,84 +110,84 @@ mod tests {
         let task1 = crate::Task::new("Learn Haskell".to_string());
         let task2 = crate::Task::new("Finish Chapter 10 of my novel".to_string());
 
-        let mut db = TaskDb::default();
-        db.add_task(task0.clone());
-        db.add_task(task1.clone());
-        db.add_task(task2.clone());
+        let mut task_list = TaskList::default();
+        task_list.add_task(task0.clone());
+        task_list.add_task(task1.clone());
+        task_list.add_task(task2.clone());
 
-        assert_eq!(db.tasks[&0], task0);
-        assert_eq!(db.tasks[&1], task1);
-        assert_eq!(db.tasks[&2], task2);
+        assert_eq!(task_list.tasks[&0], task0);
+        assert_eq!(task_list.tasks[&1], task1);
+        assert_eq!(task_list.tasks[&2], task2);
     }
 
     #[test]
     fn tasks_can_be_removed_by_id() {
-        let mut db = TaskDb::default();
+        let mut task_list = TaskList::default();
 
-        db.add_task(crate::Task::new("Buy some milk".to_string())); // ID: 0
-        db.add_task(crate::Task::new("Learn Haskell".to_string())); // ID: 1
-        db.remove_task(0);
+        task_list.add_task(crate::Task::new("Buy some milk".to_string())); // ID: 0
+        task_list.add_task(crate::Task::new("Learn Haskell".to_string())); // ID: 1
+        task_list.remove_task(0);
 
         // The task takes the lowest available ID, which is now 0.
-        db.add_task(crate::Task::new(
+        task_list.add_task(crate::Task::new(
             "Finish Chapter 10 of my novel".to_string(),
         ));
-        db.remove_task(1);
-        db.remove_task(0);
+        task_list.remove_task(1);
+        task_list.remove_task(0);
 
-        assert!(db.tasks.is_empty());
+        assert!(task_list.tasks.is_empty());
     }
 
     #[test]
     fn tasks_can_be_renamed_by_providing_an_id_and_new_title() {
-        let mut db = TaskDb::default();
+        let mut task_list = TaskList::default();
 
-        db.add_task(crate::Task::new("Buy some milk".to_string()));
-        db.rename_task(0, "Purchase some milk".to_string());
+        task_list.add_task(crate::Task::new("Buy some milk".to_string()));
+        task_list.rename_task(0, "Purchase some milk".to_string());
 
         assert_eq!(
-            db.tasks[&0],
+            task_list.tasks[&0],
             crate::Task::new("Purchase some milk".to_string())
         );
     }
 
     #[test]
     fn tasks_can_be_completed_by_id() {
-        let mut db = TaskDb::default();
+        let mut task_list = TaskList::default();
 
-        db.add_task(crate::Task::new("Buy some milk".to_string()));
-        assert!(!db.tasks[&0].is_complete());
+        task_list.add_task(crate::Task::new("Buy some milk".to_string()));
+        assert!(!task_list.tasks[&0].is_complete());
 
-        db.complete_task(0);
-        assert!(db.tasks[&0].is_complete());
+        task_list.complete_task(0);
+        assert!(task_list.tasks[&0].is_complete());
     }
 
     #[test]
     fn completed_tasks_can_be_removed() {
-        let mut db = TaskDb::default();
+        let mut task_list = TaskList::default();
 
-        db.add_task(crate::Task::new("Go to the dentist".to_string()));
-        db.add_task(crate::Task::new("Write some tests".to_string()));
-        db.add_task(crate::Task::new("Refactor code".to_string()));
-        db.complete_task(1);
-        db.complete_task(2);
+        task_list.add_task(crate::Task::new("Go to the dentist".to_string()));
+        task_list.add_task(crate::Task::new("Write some tests".to_string()));
+        task_list.add_task(crate::Task::new("Refactor code".to_string()));
+        task_list.complete_task(1);
+        task_list.complete_task(2);
 
-        db.remove_completed_tasks();
+        task_list.remove_completed_tasks();
 
         assert_eq!(
-            db.tasks.into_iter().collect::<Vec<_>>(),
+            task_list.tasks.into_iter().collect::<Vec<_>>(),
             vec![(0, crate::Task::new("Go to the dentist".to_string()))]
         );
     }
 
     #[test]
-    fn task_db_implements_display() {
-        let mut db = TaskDb::default();
-        db.add_task(crate::Task::new("Buy some milk".to_string()));
-        db.add_task(crate::Task::new("Learn Haskell".to_string()));
+    fn task_list_implements_display() {
+        let mut task_list = TaskList::default();
+        task_list.add_task(crate::Task::new("Buy some milk".to_string()));
+        task_list.add_task(crate::Task::new("Learn Haskell".to_string()));
 
         assert_eq!(
-            format!("{}", db),
+            format!("{}", task_list),
             "\
 [  0] • Buy some milk
 [  1] • Learn Haskell"
