@@ -55,6 +55,8 @@ enum Subcommand {
     AddTaskList { name: String },
     /// Removes a task list
     RemoveTaskList { name: String },
+    /// Renames a task list
+    RenameTaskList { old_name: String, new_name: String },
     /// Sets the current task list
     SetCurrent { name: String },
 }
@@ -77,6 +79,9 @@ impl Subcommand {
                 db.set_current(name).unwrap();
             }
             Self::RemoveTaskList { name } => db.remove_task_list(name)?,
+            Self::RenameTaskList { old_name, new_name } => {
+                db.rename_task_list(old_name, new_name)?
+            }
             Self::SetCurrent { name } => db.set_current(name)?,
         }
 
