@@ -1,0 +1,56 @@
+name: CD
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update-homebrew-formula:
+    name: Update Homebrew Formula
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Get version
+        id: get-version
+        run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
+
+      - name: Compile
+        run: |
+          cargo build --release
+          strip target/release/t
+          tar -czvf t.tar.gz target/release/t
+
+      - name: Create release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+
+      - name: Upload compiled binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: t.tar.gz
+          asset_name: t.tar.gz
+          asset_content_type: application/gzip
+
+      - uses: mislav/bump-homebrew-formula-action@v1
+        with:
+          formula-name: t
+          homebrew-tap: arzg/homebrew-t-tap
+          download-url: https://github.com/arzg/t/releases/download/${{ steps.get-version.outputs.version }}/t.tar.gz
+        env:
+          COMMITTER_TOKEN: ${{ secrets.BREW_TOKEN }}
