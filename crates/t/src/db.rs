@@ -36,6 +36,10 @@ impl Db {
     }
 
     pub fn rename_task_list(&mut self, old_name: String, new_name: String) -> Result<(), Error> {
+        if self.current_list == old_name {
+            self.current_list = new_name.clone();
+        }
+
         let task_list = self.task_lists.remove(&old_name);
 
         if let Some(task_list) = task_list {
@@ -226,6 +230,29 @@ mod tests {
             db.rename_task_list("Foo".to_string(), "Bar".to_string()),
             Err(Error::NonExistentTaskList("Foo".to_string()))
         );
+    }
+
+    #[test]
+    fn renaming_the_current_task_list_switches_to_it() {
+        let mut db = Db::default();
+
+        db.rename_task_list("Tasks".to_string(), "Todo".to_string())
+            .unwrap();
+        assert_eq!(db.current_list, "Todo".to_string());
+
+        db.add_task_list("Personal tasks".to_string(), TaskList::default());
+        assert_eq!(db.current_list, "Todo".to_string());
+
+        db.rename_task_list("Personal tasks".to_string(), "Personal".to_string())
+            .unwrap();
+        assert_eq!(db.current_list, "Todo".to_string());
+
+        db.set_current("Personal".to_string()).unwrap();
+        assert_eq!(db.current_list, "Personal".to_string());
+
+        db.rename_task_list("Personal".to_string(), "Personal tasks".to_string())
+            .unwrap();
+        assert_eq!(db.current_list, "Personal tasks".to_string());
     }
 
     #[test]
