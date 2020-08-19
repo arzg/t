@@ -63,7 +63,7 @@ enum Subcommand {
 
 impl Subcommand {
     fn execute(self, db: &mut Db) -> anyhow::Result<()> {
-        let current_task_list = db.get_current_task_list_mut().unwrap();
+        let current_task_list = db.get_current_task_list_mut();
 
         match self {
             Self::Add { title } => current_task_list.add_task(Task::new(title)),

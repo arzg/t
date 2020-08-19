@@ -59,8 +59,8 @@ impl Db {
         }
     }
 
-    pub fn get_current_task_list_mut(&mut self) -> Option<&mut TaskList> {
-        self.task_lists.get_mut(&self.current_list)
+    pub fn get_current_task_list_mut(&mut self) -> &mut TaskList {
+        self.task_lists.get_mut(&self.current_list).unwrap()
     }
 }
 
@@ -259,7 +259,7 @@ mod tests {
     fn display_implementation_shows_all_task_lists_and_current_task_list() {
         let mut db = Db::default();
 
-        let default_task_list = db.get_current_task_list_mut().unwrap();
+        let default_task_list = db.get_current_task_list_mut();
 
         default_task_list.add_task(Task::new("Buy laptop sleeve".to_string()));
         default_task_list.add_task(Task::new("Vacuum".to_string()));
@@ -360,9 +360,9 @@ Tasks (current)
         db.set_current("Refactoring".to_string()).unwrap();
 
         let current_task_list = db.get_current_task_list_mut();
-        assert_eq!(current_task_list, Some(&mut refactoring_tasks));
+        assert_eq!(current_task_list, &mut refactoring_tasks);
 
-        let current_task_list = current_task_list.unwrap();
+        let current_task_list = current_task_list;
 
         current_task_list.add_task(Task::new("Refactor foo.rs".to_string()));
 
