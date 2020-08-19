@@ -121,5 +121,5 @@ fn get_db_path() -> anyhow::Result<PathBuf> {
             app_name: "t".to_string(),
         })?;
 
-    Ok(strategy.data_file("db.json"))
+    Ok(strategy.in_data_dir("db.json"))
 }
